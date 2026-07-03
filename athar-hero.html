@@ -48,7 +48,12 @@
       display: flex; align-items: center; justify-content: center;
       animation: videoIn 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .hero__video video { width: 80%; height: 80%; object-fit: cover; border-radius: 12px; }
+    /* fallback backdrop shown if the video fails to load (never blank white) */
+    .hero__video video {
+      width: 80%; height: 80%; object-fit: cover; border-radius: 12px;
+      background:
+        radial-gradient(120% 80% at 70% 20%, #f4f4f6 0%, #e9e9ee 45%, #d8d8df 100%);
+    }
 
     /* ===== navbar ===== */
     .nav {
