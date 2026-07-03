@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>أثر للتدريب</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ffffff;
+      color: #000;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ===== entrance animation ===== */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(var(--from, 16px)); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes videoIn {
+      from { opacity: 0; transform: scale(1.05); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .anim { opacity: 0; animation-fill-mode: forwards; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+
+    /* ===== hero shell ===== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100svh;
+      width: 100%;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* ===== background video ===== */
+    .hero__video {
+      position: absolute; inset: 0; z-index: 0;
+      display: flex; align-items: center; justify-content: center;
+      animation: videoIn 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .hero__video video { width: 80%; height: 80%; object-fit: cover; border-radius: 12px; }
+
+    /* ===== navbar ===== */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px; pointer-events: none;
+      --from: -16px; animation: fadeUp 0.8s forwards; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav > * { pointer-events: auto; }
+    .nav__group { display: flex; align-items: center; gap: 10px; }
+
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .brand__text { display: none; font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+
+    .menu-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: #000; color: #fff; border-radius: 999px;
+      padding: 4px 12px 4px 4px; height: 32px;
+    }
+    .menu-btn__circle {
+      width: 28px; height: 28px; border-radius: 50%; background: #fff;
+      display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .menu-btn__label { font-size: 11px; font-weight: 500; color: #fff; }
+
+    .tags-pill {
+      display: none; align-items: center; gap: 10px;
+      background: #f4f4f6; border-radius: 999px; padding: 8px 16px;
+      font-size: 11px; font-weight: 500;
+    }
+    .tags-pill__sep { width: 1px; height: 12px; background: rgba(0,0,0,0.15); }
+
+    .systems-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: #f4f4f6; border-radius: 999px; padding: 4px;
+    }
+    .systems-pill__circle {
+      width: 28px; height: 28px; border-radius: 50%; background: #000;
+      display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .systems-pill__label {
+      display: none; font-size: 11px; font-weight: 500;
+      padding-inline-start: 2px; padding-inline-end: 10px;
+    }
+
+    /* ===== footer ===== */
+    .footer {
+      position: relative; z-index: 30; margin-top: auto;
+      display: flex; flex-direction: column; gap: 28px;
+      padding: 24px 16px 28px;
+      background: linear-gradient(to top, #fff 0%, rgba(255,255,255,0.8) 50%, transparent 100%);
+      --from: 20px; animation: fadeUp 1s 0.5s forwards; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .footer__left { display: flex; flex-direction: column; gap: 20px; }
+
+    .subtitle {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: rgba(0,0,0,0.55);
+      --from: 16px; animation: fadeUp 0.8s 0.6s forwards;
+    }
+    .subtitle__dot { width: 8px; height: 8px; border-radius: 50%; background: #000; flex-shrink: 0; }
+
+    .heading {
+      font-weight: 300; font-size: clamp(2rem, 8vw, 4.5rem);
+      letter-spacing: -0.03em; line-height: 1;
+      --from: 20px; animation: fadeUp 0.8s 0.8s forwards;
+    }
+
+    .actions {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      --from: 16px; animation: fadeUp 0.8s 1s forwards;
+    }
+    .btn {
+      height: 40px; padding: 0 20px; border-radius: 999px;
+      font-size: 13px; font-weight: 500;
+      transition: opacity 0.2s ease, background 0.2s ease;
+    }
+    .btn--solid { background: #000; color: #fff; }
+    .btn--solid:hover { opacity: 0.85; }
+    .btn--ghost { background: transparent; color: #000; border: 1px solid rgba(0,0,0,0.35); }
+    .btn--ghost:hover { background: rgba(0,0,0,0.05); }
+
+    .footer__right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      background: #fff; border: 1px solid rgba(0,0,0,0.12); border-radius: 999px;
+      padding: 7px 14px; font-size: 11px; font-weight: 500;
+    }
+
+    /* ===== desktop >= 768px ===== */
+    @media (min-width: 768px) {
+      .hero__video video { width: 100%; height: 100%; border-radius: 0; }
+      .nav { padding: 24px 32px; }
+      .nav__group { gap: 12px; }
+      .brand__text { display: inline; }
+      .menu-btn { height: 36px; }
+      .menu-btn__circle { width: 32px; height: 32px; }
+      .tags-pill { display: inline-flex; }
+      .systems-pill__circle { width: 32px; height: 32px; }
+      .systems-pill__label { display: inline; }
+      .footer { flex-direction: row; justify-content: space-between; align-items: flex-end; padding: 40px 32px; }
+      .heading { font-size: clamp(2.5rem, 5.5vw, 4.5rem); }
+      .footer__right { justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <!-- background video -->
+    <div class="hero__video">
+      <video autoplay muted loop playsinline>
+        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_215831_c6a8989c-d716-4d8d-8745-e972a2eec711.mp4" type="video/mp4" />
+      </video>
+    </div>
+
+    <!-- navbar -->
+    <nav class="nav">
+      <div class="nav__group">
+        <div class="brand">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+            <g transform="rotate(-35 13 13)">
+              <rect x="7" y="2" width="5" height="22" rx="2.5" fill="#000" />
+              <rect x="14" y="2" width="5" height="22" rx="2.5" fill="#000" />
+            </g>
+          </svg>
+          <span class="brand__text">أثر</span>
+        </div>
+
+        <button class="menu-btn">
+          <span class="menu-btn__circle">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </span>
+          <span class="menu-btn__label">القائمة</span>
+        </button>
+
+        <div class="tags-pill">
+          <span>تصميم احترافي</span>
+          <span class="tags-pill__sep"></span>
+          <span>محتوى رقمي</span>
+        </div>
+      </div>
+
+      <div class="nav__group">
+        <div class="systems-pill">
+          <button class="systems-pill__circle" aria-label="الأنظمة">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <circle cx="3.5" cy="3.5" r="1.5" fill="#fff" />
+              <circle cx="8.5" cy="3.5" r="1.5" fill="#fff" />
+              <circle cx="3.5" cy="8.5" r="1.5" fill="#fff" />
+              <circle cx="8.5" cy="8.5" r="1.5" fill="#fff" />
+            </svg>
+          </button>
+          <span class="systems-pill__label">شركاء النجاح</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- footer -->
+    <div class="footer">
+      <div class="footer__left">
+        <div class="subtitle">
+          <span class="subtitle__dot"></span>
+          <span>أفضل مركز تدريب إبداعي 2026</span>
+        </div>
+
+        <h1 class="heading">دورات احترافية،<br />إبداع بلا حدود.</h1>
+
+        <div class="actions">
+          <button class="btn btn--solid">استعرض الدورات</button>
+          <button class="btn btn--ghost">كيف نبدأ</button>
+        </div>
+      </div>
+
+      <div class="footer__right">
+        <span class="chip">فوتوشوب</span>
+        <span class="chip">إليستريتور</span>
+        <span class="chip">إنديزاين</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
