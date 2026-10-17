@@ -1,10 +1,6 @@
 /* Athar · homepage motion (campaign frames, featured courses, reviews, partners) · built 2026-10-17 */
 (function(){
   if(window.__athrHome) return; window.__athrHome=1;
-  /* diagnostics: open the page with #athr-debug to see a status box */
-  var DBG=location.hash==='#athr-debug';
-  function dbg(m){ if(!DBG) return; var b=document.getElementById('athr-dbg'); if(!b){ b=document.createElement('pre'); b.id='athr-dbg'; b.style.cssText='position:fixed;left:8px;bottom:96px;z-index:2147483647;background:#3D1A6E;color:#fff;font:12px/1.5 monospace;padding:8px 10px;border-radius:10px;max-width:90vw;white-space:pre-wrap;direction:ltr;text-align:left;margin:0'; document.body.appendChild(b);} b.textContent+=m+'\n'; }
-  if(DBG){ window.addEventListener('error',function(e){ dbg('ERR '+(e.message||'')+' '+((e.filename||'').split('/').pop())+':'+(e.lineno||'')); }); dbg('home.js '+(new Date).toISOString().slice(11,19)+' ua '+navigator.userAgent.replace(/.*(iPhone OS [^ ]+|Android [^;]+).*/,'$1')+' reduce='+(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)); }
   /* GSAP from cdnjs, with jsDelivr as a second source if the first is blocked on the visitor's network */
   var CDNS=['https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/','https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/'];
   function tag(src,name){ return new Promise(function(res,rej){
@@ -67,6 +63,6 @@
     setTimeout(function(){ mo.disconnect(); },20000);
   }
   /* both files are requested at once; async=false keeps their execution order */
-  function start(){ Promise.all([need('gsap','gsap.min.js'),need('ScrollTrigger','ScrollTrigger.min.js')]).then(function(){ dbg('gsap+ScrollTrigger ok'); boot(); dbg('home boot ok, sections='+document.querySelectorAll('.ah').length); }).catch(function(e){ dbg('home FAILED '+(e&&e.message)); if(window.console) console.warn('athar home: motion skipped',e); }); }
+  function start(){ Promise.all([need('gsap','gsap.min.js'),need('ScrollTrigger','ScrollTrigger.min.js')]).then(function(){ boot(); }).catch(function(e){ if(window.console) console.warn('athar home: motion skipped',e); }); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
 })();
