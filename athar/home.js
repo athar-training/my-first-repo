@@ -5,8 +5,8 @@
   var CDNS=['https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/','https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/'];
   function tag(src,name){ return new Promise(function(res,rej){
     var ex=document.querySelector('script[src="'+src+'"]');
-    if(ex){ if(ex.getAttribute('data-ok')||window[name]) return res(); ex.addEventListener('load',res); ex.addEventListener('error',rej); return; }
-    var s=document.createElement('script'); s.src=src; s.async=false; s.onload=function(){ s.setAttribute('data-ok','1'); res(); }; s.onerror=rej; document.head.appendChild(s); }); }
+    if(ex){ if(ex.getAttribute('data-ok')||window[name]) return res(); if(ex.getAttribute('data-err')) return rej(new Error('cdn failed')); ex.addEventListener('load',res); ex.addEventListener('error',rej); return; }
+    var s=document.createElement('script'); s.src=src; s.async=false; s.onload=function(){ s.setAttribute('data-ok','1'); res(); }; s.onerror=function(){ s.setAttribute('data-err','1'); rej(new Error('cdn failed')); }; document.head.appendChild(s); }); }
   function load(file,name,i){ i=i||0; return tag(CDNS[i]+file,name).catch(function(e){ if(i+1<CDNS.length) return load(file,name,i+1); throw e; }); }
   function need(name,file){ return window[name]?Promise.resolve():load(file,name); }
   /* reduced motion: keep the one-shot reveals, drop only the scroll-linked parallax */
