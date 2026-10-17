@@ -2,8 +2,9 @@
 (function(){
   var BASE=window.ATHAR_PATHS_BASE||(function(){ var s=document.currentScript; return s? s.src.replace(/paths\.js(\?.*)?$/,'') : ''; })();
   var CDN='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/';
-  function load(src){ return new Promise(function(res,rej){ var s=document.createElement('script'); s.src=src; s.async=false; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
-  function need(name,file){ return (window[name])?Promise.resolve():load(CDN+file); }
+  /* reuse a GSAP script tag another Athar script (home.js) already injected instead of loading a second copy */
+  function load(src,name){ return new Promise(function(res,rej){ var ex=document.querySelector('script[src="'+src+'"]'); if(ex){ if(ex.getAttribute('data-ok')||window[name]) return res(); ex.addEventListener('load',res); ex.addEventListener('error',rej); return; } var s=document.createElement('script'); s.src=src; s.async=false; s.onload=function(){ s.setAttribute('data-ok','1'); res(); }; s.onerror=rej; document.head.appendChild(s); }); }
+  function need(name,file){ return (window[name])?Promise.resolve():load(CDN+file,name); }
   function injectLib(root){ return fetch(BASE+'paths-lib.svg',{mode:'cors'}).then(function(r){return r.text()}).then(function(t){ var w=document.createElement('div'); w.innerHTML=t; var s=w.querySelector('svg'); s.setAttribute('class','ap-lib'); s.setAttribute('aria-hidden','true'); root.insertBefore(s, root.firstChild); }); }
   function start(){
     var root=document.getElementById('athar-paths'); if(!root) return;
