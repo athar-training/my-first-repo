@@ -58,7 +58,7 @@
     txt.style.minHeight=Math.max(q('#ap-st-rec').offsetHeight,q('#ap-st-live').offsetHeight)+'px';
     var state='live',busy=null, radios={rec:q('#ap-rec'),live:q('#ap-live')};
     function go(s){
-      if(s===state) return; state=s; if(busy) busy.kill(); radios[s].checked=true; mark(s);
+      if(s===state) return; state=s; if(busy) busy.kill(); if(intro&&intro.isActive()) intro.progress(1); radios[s].checked=true; mark(s);
       var toLive=s==='live', tl=gsap.timeline({defaults:{ease:E3}}); busy=tl;
       morphs.forEach(function(m,i){ tl.to(m.el,{morphSVG:{shape:toLive?m.live:m.rec,shapeIndex:0},attr:toLive?m.la:m.ra,duration:1.4},(i%6)*.05); });
       tl.add(function(){ restack(toLive?liveOrder:recOrder); },.55);
@@ -77,9 +77,12 @@
     var intro=gsap.timeline({paused:true,defaults:{ease:'power1.inOut'}});
     intro.fromTo(strokes,{drawSVG:'0%'},{drawSVG:'100%',duration:1.4,stagger:{each:.004}},0)
          .to(liveLines,{yPercent:0,stagger:.08,duration:.7,ease:'power3.out'},.3)
-         .to(upLive?upLive:{},{clipPath:OPEN,duration:.6,ease:'power3.out'},.9)
-         .add(function(){ setTimeout(function(){ if(state==='live') go('rec'); },1800); });
+         .to(upLive?upLive:{},{clipPath:OPEN,duration:.6,ease:'power3.out'},.9);
     ScrollTrigger.create({trigger:root,start:'top 70%',once:true,onEnter:function(){ intro.play(); }});
+    /* the scroll drives the state: moving down past the section switches to the recorded courses and moving back up returns to live
+       (two different lines, so a small jitter around one line does not flip the scene back and forth) */
+    ScrollTrigger.create({trigger:root,start:'top 30%',onEnter:function(){ go('rec'); }});
+    ScrollTrigger.create({trigger:root,start:'top 45%',onLeaveBack:function(){ go('live'); }});
   };
   var waited=0; function whenReady(){ if(document.getElementById('athar-paths')) return start(); if(waited++<40) setTimeout(whenReady,250); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',whenReady); else whenReady();
