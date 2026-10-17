@@ -36,10 +36,15 @@
       src.sort(function(a,b){return area(b)-area(a)}); dst.sort(function(a,b){return area(b)-area(a)});
       var n=Math.max(src.length,dst.length), host=q('#ap-'+[].concat(pr[0])[0],svg);
       for(var i=0;i<n;i++){ var s=src[i], d=dst[i];
-        if(s&&d){ if(area(s)>MIN||area(d)>MIN){ morphs.push({el:s,rec:s.getAttribute('d'),live:d.getAttribute('d'),ra:attrsOf(s),la:attrsOf(d)}); } else { recOnly.push(s); var c=d.cloneNode(true); host.appendChild(c); gsap.set(c,{scale:0}); liveOnly.push(c); } }
+        if(s&&d){ if(area(s)>MIN||area(d)>MIN){ s.__lib=d; morphs.push({el:s,rec:s.getAttribute('d'),live:d.getAttribute('d'),ra:attrsOf(s),la:attrsOf(d)}); } else { recOnly.push(s); var c=d.cloneNode(true); c.__lib=d; host.appendChild(c); gsap.set(c,{scale:0}); liveOnly.push(c); } }
         else if(s){ recOnly.push(s); }
-        else if(d){ var c2=d.cloneNode(true); host.appendChild(c2); gsap.set(c2,{scale:0}); liveOnly.push(c2); } }
+        else if(d){ var c2=d.cloneNode(true); c2.__lib=d; host.appendChild(c2); gsap.set(c2,{scale:0}); liveOnly.push(c2); } }
     });
+    /* layering: shapes keep the recorded scene's drawing order, so once they reshape into the live scene the
+       screen could cover the instructor. Each state therefore re-stacks the paths in its own drawing order */
+    var recOrder=qa('path',svg), byLib=new Map(); recOrder.forEach(function(p){ if(p.__lib) byLib.set(p.__lib,p); });
+    var liveOrder=[]; qa('[id^="v1-"] path',lib).forEach(function(d){ var p=byLib.get(d); if(p) liveOrder.push(p); }); recOnly.forEach(function(p){ if(liveOrder.indexOf(p)<0) liveOrder.unshift(p); });
+    function restack(list){ list.forEach(function(p){ svg.appendChild(p); }); }
     var strokes=qa('path[stroke]',svg).filter(function(p){return p.getAttribute('stroke')!=='none'});
     var recLines=qa('#ap-st-rec .ln > *'), liveLines=qa('#ap-st-live .ln > *'), txt=q('#ap-txt');
     gsap.set(liveLines,{yPercent:110}); gsap.set(recLines,{yPercent:110}); gsap.set('#ap-k-live',{opacity:0}); gsap.set('#ap-k-live .c',{yPercent:110});
@@ -49,6 +54,7 @@
       if(s===state) return; state=s; if(busy) busy.kill(); radios[s].checked=true;
       var toLive=s==='live', tl=gsap.timeline({defaults:{ease:E3}}); busy=tl;
       morphs.forEach(function(m,i){ tl.to(m.el,{morphSVG:{shape:toLive?m.live:m.rec,shapeIndex:0},attr:toLive?m.la:m.ra,duration:1.4},(i%6)*.05); });
+      tl.add(function(){ restack(toLive?liveOrder:recOrder); },.55);
       tl.to(toLive?recOnly:liveOnly,{scale:0,duration:.5,ease:'power2.in'},0)
         .to(toLive?liveOnly:recOnly,{scale:1,duration:.7,ease:'back.out(1.3)'},.8)
         .to(toLive?recLines:liveLines,{yPercent:-110,stagger:.05,duration:.5},0)
