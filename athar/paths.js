@@ -1,14 +1,15 @@
 /* Athar · two paths section (recorded / live) · loader + motion · built 2026-10-17 */
 (function(){
   var BASE=window.ATHAR_PATHS_BASE||(function(){ var s=document.currentScript; return s? s.src.replace(/paths\.js(\?.*)?$/,'') : ''; })();
-  var CDN='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/';
-  /* reuse a GSAP script tag another Athar script (home.js) already injected instead of loading a second copy */
-  function load(src,name){ return new Promise(function(res,rej){ var ex=document.querySelector('script[src="'+src+'"]'); if(ex){ if(ex.getAttribute('data-ok')||window[name]) return res(); ex.addEventListener('load',res); ex.addEventListener('error',rej); return; } var s=document.createElement('script'); s.src=src; s.async=false; s.onload=function(){ s.setAttribute('data-ok','1'); res(); }; s.onerror=rej; document.head.appendChild(s); }); }
-  function need(name,file){ return (window[name])?Promise.resolve():load(CDN+file,name); }
+  /* GSAP from cdnjs, with jsDelivr as a second source; reuse a script tag home.js already injected instead of loading a second copy */
+  var CDNS=['https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/','https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/'];
+  function tag(src,name){ return new Promise(function(res,rej){ var ex=document.querySelector('script[src="'+src+'"]'); if(ex){ if(ex.getAttribute('data-ok')||window[name]) return res(); ex.addEventListener('load',res); ex.addEventListener('error',rej); return; } var s=document.createElement('script'); s.src=src; s.async=false; s.onload=function(){ s.setAttribute('data-ok','1'); res(); }; s.onerror=rej; document.head.appendChild(s); }); }
+  function load(file,name,i){ i=i||0; return tag(CDNS[i]+file,name).catch(function(e){ if(i+1<CDNS.length) return load(file,name,i+1); throw e; }); }
+  function need(name,file){ return (window[name])?Promise.resolve():load(file,name); }
   function injectLib(root){ return fetch(BASE+'paths-lib.svg',{mode:'cors'}).then(function(r){return r.text()}).then(function(t){ var w=document.createElement('div'); w.innerHTML=t; var s=w.querySelector('svg'); s.setAttribute('class','ap-lib'); s.setAttribute('aria-hidden','true'); root.insertBefore(s, root.firstChild); }); }
   function start(){
     var root=document.getElementById('athar-paths'); if(!root) return;
-    if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    /* the morph is one-shot content, so it also plays for visitors with reduced motion enabled (the CSS tickers stay off for them) */
     need('gsap','gsap.min.js').then(function(){ return need('ScrollTrigger','ScrollTrigger.min.js'); }).then(function(){ return need('MorphSVGPlugin','MorphSVGPlugin.min.js'); }).then(function(){ return need('DrawSVGPlugin','DrawSVGPlugin.min.js'); })
       .then(function(){ return injectLib(root); }).then(function(){ BOOT(); }).catch(function(e){ if(window.console) console.warn('athar paths: motion skipped', e); });
   }

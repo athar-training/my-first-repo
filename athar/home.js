@@ -1,13 +1,16 @@
 /* Athar · homepage motion (campaign frames, featured courses, reviews, partners) · built 2026-10-17 */
 (function(){
   if(window.__athrHome) return; window.__athrHome=1;
-  var CDN='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/';
-  function load(file){ return new Promise(function(res,rej){
-    var ex=document.querySelector('script[src="'+CDN+file+'"]');
-    if(ex){ if(ex.getAttribute('data-ok')||window[file==='gsap.min.js'?'gsap':'ScrollTrigger']) return res(); ex.addEventListener('load',res); ex.addEventListener('error',rej); return; }
-    var s=document.createElement('script'); s.src=CDN+file; s.async=false; s.onload=function(){ s.setAttribute('data-ok','1'); res(); }; s.onerror=rej; document.head.appendChild(s); }); }
-  function need(name,file){ return window[name]?Promise.resolve():load(file); }
-  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* GSAP from cdnjs, with jsDelivr as a second source if the first is blocked on the visitor's network */
+  var CDNS=['https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/','https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/'];
+  function tag(src,name){ return new Promise(function(res,rej){
+    var ex=document.querySelector('script[src="'+src+'"]');
+    if(ex){ if(ex.getAttribute('data-ok')||window[name]) return res(); ex.addEventListener('load',res); ex.addEventListener('error',rej); return; }
+    var s=document.createElement('script'); s.src=src; s.async=false; s.onload=function(){ s.setAttribute('data-ok','1'); res(); }; s.onerror=rej; document.head.appendChild(s); }); }
+  function load(file,name,i){ i=i||0; return tag(CDNS[i]+file,name).catch(function(e){ if(i+1<CDNS.length) return load(file,name,i+1); throw e; }); }
+  function need(name,file){ return window[name]?Promise.resolve():load(file,name); }
+  /* reduced motion: keep the one-shot reveals, drop only the scroll-linked parallax */
+  var reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var E='power3.out', EB='back.out(1.7)';
   var isDesk=window.matchMedia('(min-width:760px)').matches, fine=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
   var q=function(s,c){return (c||document).querySelector(s)}, qa=function(s,c){return [].slice.call((c||document).querySelectorAll(s))};
@@ -26,7 +29,7 @@
       .from('#ah-heroCta',{y:20,opacity:0,duration:.6},'-=.5')
       .from('#ah-hero .ah-pager > *',{scale:0,duration:.4,ease:EB,stagger:.08},'-=.4');
     /* 2. Parallax while the frame leaves the viewport (zero shift at rest, so no gap on load) */
-    gsap.to('#ah-heroImg',{yPercent:8,ease:'none',scrollTrigger:{trigger:fr,start:'top top',end:'bottom top',scrub:true}});
+    if(!reduce) gsap.to('#ah-heroImg',{yPercent:8,ease:'none',scrollTrigger:{trigger:fr,start:'top top',end:'bottom top',scrub:true}});
   }
   function prime(){
     var pf=q('#ah-primeFrame'); if(!pf||!flag(pf)) return;
