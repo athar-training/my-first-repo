@@ -1,6 +1,6 @@
 /* Athar · two paths section (recorded / live) · loader + motion · built 2026-10-17 */
 (function(){
-  var BASE=(function(){ var s=document.currentScript; return s? s.src.replace(/paths\.js(\?.*)?$/,'') : ''; })();
+  var BASE=window.ATHAR_PATHS_BASE||(function(){ var s=document.currentScript; return s? s.src.replace(/paths\.js(\?.*)?$/,'') : ''; })();
   var CDN='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/';
   function load(src){ return new Promise(function(res,rej){ var s=document.createElement('script'); s.src=src; s.async=false; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
   function need(name,file){ return (window[name])?Promise.resolve():load(CDN+file); }
@@ -63,5 +63,6 @@
          .add(function(){ setTimeout(function(){ if(state==='rec') go('live'); },1800); });
     ScrollTrigger.create({trigger:root,start:'top 70%',once:true,onEnter:function(){ intro.play(); }});
   };
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+  var waited=0; function whenReady(){ if(document.getElementById('athar-paths')) return start(); if(waited++<40) setTimeout(whenReady,250); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',whenReady); else whenReady();
 })();
