@@ -1,5 +1,7 @@
 /* Athar · two paths section (recorded / live) · loader + motion · built 2026-10-17 */
 (function(){
+  var DBG=location.hash==='#athr-debug';
+  function dbg(m){ if(!DBG) return; var b=document.getElementById('athr-dbg'); if(!b){ b=document.createElement('pre'); b.id='athr-dbg'; b.style.cssText='position:fixed;left:8px;bottom:96px;z-index:2147483647;background:#3D1A6E;color:#fff;font:12px/1.5 monospace;padding:8px 10px;border-radius:10px;max-width:90vw;white-space:pre-wrap;direction:ltr;text-align:left;margin:0'; document.body.appendChild(b);} b.textContent+=m+'\n'; }
   var BASE=window.ATHAR_PATHS_BASE||(function(){ var s=document.currentScript; return s? s.src.replace(/paths\.js(\?.*)?$/,'') : ''; })();
   /* GSAP from cdnjs, with jsDelivr as a second source; reuse a script tag home.js already injected instead of loading a second copy */
   var CDNS=['https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/','https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/'];
@@ -10,8 +12,10 @@
   function start(){
     var root=document.getElementById('athar-paths'); if(!root) return;
     /* the morph is one-shot content, so it also plays for visitors with reduced motion enabled (the CSS tickers stay off for them) */
-    need('gsap','gsap.min.js').then(function(){ return need('ScrollTrigger','ScrollTrigger.min.js'); }).then(function(){ return need('MorphSVGPlugin','MorphSVGPlugin.min.js'); }).then(function(){ return need('DrawSVGPlugin','DrawSVGPlugin.min.js'); })
-      .then(function(){ return injectLib(root); }).then(function(){ BOOT(); }).catch(function(e){ if(window.console) console.warn('athar paths: motion skipped', e); });
+    dbg('paths.js start');
+    /* everything is requested at once (scripts keep their order with async=false; the SVG library downloads alongside) */
+    Promise.all([need('gsap','gsap.min.js'),need('ScrollTrigger','ScrollTrigger.min.js'),need('MorphSVGPlugin','MorphSVGPlugin.min.js'),need('DrawSVGPlugin','DrawSVGPlugin.min.js'),injectLib(root)])
+      .then(function(){ dbg('paths libs+svg ok'); BOOT(); dbg('paths boot ok, paths='+root.querySelectorAll('#ap-morph path').length); }).catch(function(e){ dbg('paths FAILED '+(e&&e.message)); if(window.console) console.warn('athar paths: motion skipped', e); });
   }
   var BOOT=function(){
     var root=document.getElementById('athar-paths'); if(!root||root.classList.contains('ap-js')) return;
