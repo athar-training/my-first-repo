@@ -1,0 +1,59 @@
+/* Athar · homepage motion (campaign frames, featured courses, reviews, partners) · built 2026-10-17 */
+(function(){
+  if(window.__athrHome) return; window.__athrHome=1;
+  var CDN='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/';
+  function load(file){ return new Promise(function(res,rej){
+    var ex=document.querySelector('script[src="'+CDN+file+'"]');
+    if(ex){ if(ex.getAttribute('data-ok')||window[file==='gsap.min.js'?'gsap':'ScrollTrigger']) return res(); ex.addEventListener('load',res); ex.addEventListener('error',rej); return; }
+    var s=document.createElement('script'); s.src=CDN+file; s.async=false; s.onload=function(){ s.setAttribute('data-ok','1'); res(); }; s.onerror=rej; document.head.appendChild(s); }); }
+  function need(name,file){ return window[name]?Promise.resolve():load(file); }
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var E='power3.out', EB='back.out(1.7)';
+  var isDesk=window.matchMedia('(min-width:760px)').matches, fine=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var q=function(s,c){return (c||document).querySelector(s)}, qa=function(s,c){return [].slice.call((c||document).querySelectorAll(s))};
+  function flag(el){ if(el.getAttribute('data-ah')) return false; el.setAttribute('data-ah','1'); return true; }
+  /* split a heading into words (visible at rest; motion animates FROM) */
+  function words(h){ var t=h.textContent.trim().split(/\s+/); h.textContent=''; t.forEach(function(w,i){ var s=document.createElement('span'); s.className='ah-w'; s.style.display='inline-block'; s.textContent=w; h.appendChild(s); if(i<t.length-1) h.appendChild(document.createTextNode(' ')); }); }
+
+  /* 1. Intro: campaign 01 frame reveals, image settles, scan dots, CTA, pager */
+  function intro(){
+    var fr=q('#ah-heroFrame'); if(!fr||!flag(fr)) return;
+    var tl=gsap.timeline({defaults:{ease:E}});
+    tl.fromTo(fr,{clipPath:'inset(0 0 100% 0 round 22px)'},{clipPath:'inset(0 0 0% 0 round 22px)',duration:1.1,ease:'expo.out'})
+      .from('#ah-heroImg',{scale:1.18,duration:1.6,ease:'expo.out'},'<')
+      .to('#ah-hero .ah-scan i',{scale:1,duration:.5,ease:EB,stagger:.15},'-=.9')
+      .from('#ah-heroCta',{y:20,opacity:0,duration:.6},'-=.5')
+      .from('#ah-hero .ah-pager > *',{scale:0,duration:.4,ease:EB,stagger:.08},'-=.4');
+    /* 2. Parallax while the frame leaves the viewport (zero shift at rest, so no gap on load) */
+    gsap.to('#ah-heroImg',{yPercent:8,ease:'none',scrollTrigger:{trigger:fr,start:'top top',end:'bottom top',scrub:true}});
+  }
+  function prime(){
+    var pf=q('#ah-primeFrame'); if(!pf||!flag(pf)) return;
+    gsap.fromTo(pf,{clipPath:'inset(0 100% 0 0 round 22px)'},{clipPath:'inset(0 0% 0 0 round 22px)',duration:1.2,ease:'expo.out',scrollTrigger:{trigger:pf,start:'top 85%',once:true}});
+  }
+  /* 3. Section headings: word reveal · kickers slide in · 4. cards, quotes and logos rise in sequence */
+  function reveals(){
+    qa('.ah-sh').forEach(function(h){ if(!flag(h)) return; words(h); if(h.closest('#ah-hero')) return;
+      gsap.from(h.querySelectorAll('.ah-w'),{yPercent:100,opacity:0,duration:.8,ease:E,stagger:.06,scrollTrigger:{trigger:h,start:'top 88%',once:true}}); });
+    qa('.ah-kick').forEach(function(k){ if(k.closest('#ah-hero')||!flag(k)) return;
+      gsap.from(k,{opacity:0,x:-16,duration:.6,ease:E,scrollTrigger:{trigger:k,start:'top 92%',once:true}}); });
+    var rv=qa('.ah-rv').filter(flag);
+    if(rv.length) ScrollTrigger.batch(rv,{start:'top 90%',once:true,onEnter:function(b){ gsap.from(b,{y:40,opacity:0,duration:.9,ease:E,stagger:.12}); }});
+    /* 5. Magnetic buttons on desktop pointers only */
+    if(isDesk&&fine) qa('.ah-btn').forEach(function(b){ if(!flag(b)) return;
+      b.addEventListener('mousemove',function(e){ var r=b.getBoundingClientRect(); gsap.to(b,{x:(e.clientX-r.left-r.width/2)*.18,y:(e.clientY-r.top-r.height/2)*.28,duration:.4,ease:E}); });
+      b.addEventListener('mouseleave',function(){ gsap.to(b,{x:0,y:0,duration:.6,ease:'elastic.out(1,.5)'}); }); });
+  }
+  function init(){ intro(); prime(); reveals(); }
+  function boot(){
+    gsap.registerPlugin(ScrollTrigger);
+    init();
+    /* Salla renders HTML blocks from the browser one after another: watch for late sections for 20s */
+    var t=null, mo=new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ init(); ScrollTrigger.refresh(); },150); });
+    mo.observe(document.body,{childList:true,subtree:true});
+    setTimeout(function(){ mo.disconnect(); ScrollTrigger.refresh(); },20000);
+    window.addEventListener('load',function(){ ScrollTrigger.refresh(); });
+  }
+  function start(){ need('gsap','gsap.min.js').then(function(){ return need('ScrollTrigger','ScrollTrigger.min.js'); }).then(boot).catch(function(e){ if(window.console) console.warn('athar home: motion skipped',e); }); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+})();
