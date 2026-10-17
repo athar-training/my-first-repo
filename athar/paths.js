@@ -48,11 +48,17 @@
     var strokes=qa('path[stroke]',svg).filter(function(p){return p.getAttribute('stroke')!=='none'});
     var recLines=qa('#ap-st-rec .ln > *'), liveLines=qa('#ap-st-live .ln > *'), txt=q('#ap-txt');
     var upRec=q('#ap-st-rec .ap-upnext'), upLive=q('#ap-st-live .ap-upnext'), OPEN='inset(0 0 0% 0)', SHUT='inset(0 0 100% 0)';
-    gsap.set(liveLines,{yPercent:110}); gsap.set(recLines,{yPercent:110}); gsap.set('#ap-k-live',{opacity:0}); gsap.set('#ap-k-live .c',{yPercent:110});
+    /* the section opens on the live state: the scene is set to the live shapes instantly and the recorded state waits below */
+    morphs.forEach(function(m){ gsap.set(m.el,{morphSVG:{shape:m.live,shapeIndex:0},attr:m.la}); }); gsap.set(recOnly,{scale:0}); gsap.set(liveOnly,{scale:1}); restack(liveOrder);
+    gsap.set(liveLines,{yPercent:110}); gsap.set(recLines,{yPercent:110}); gsap.set('#ap-k-live',{opacity:1}); gsap.set('#ap-k-rec .c',{yPercent:110});
+    /* the active state's text block and the illustration link to that state's category */
+    var stRec=q('#ap-st-rec'), stLive=q('#ap-st-live'), recURL=stRec.getAttribute('href'), liveURL=stLive.getAttribute('href');
+    function mark(s){ stRec.classList.toggle('is-on',s==='rec'); stLive.classList.toggle('is-on',s==='live'); var u=s==='live'?liveURL:recURL; if(art.tagName==='A'&&u){ art.setAttribute('href',u); art.setAttribute('aria-label',s==='live'?'\u062a\u0635\u0641\u062d \u062f\u0648\u0631\u0627\u062a \u0627\u0644\u0628\u062b \u0627\u0644\u0645\u0628\u0627\u0634\u0631':'\u062a\u0635\u0641\u062d \u0627\u0644\u062f\u0648\u0631\u0627\u062a \u0627\u0644\u0645\u0633\u062c\u0644\u0629'); } }
+    mark('live');
     txt.style.minHeight=Math.max(q('#ap-st-rec').offsetHeight,q('#ap-st-live').offsetHeight)+'px';
-    var state='rec',busy=null, radios={rec:q('#ap-rec'),live:q('#ap-live')};
+    var state='live',busy=null, radios={rec:q('#ap-rec'),live:q('#ap-live')};
     function go(s){
-      if(s===state) return; state=s; if(busy) busy.kill(); radios[s].checked=true;
+      if(s===state) return; state=s; if(busy) busy.kill(); radios[s].checked=true; mark(s);
       var toLive=s==='live', tl=gsap.timeline({defaults:{ease:E3}}); busy=tl;
       morphs.forEach(function(m,i){ tl.to(m.el,{morphSVG:{shape:toLive?m.live:m.rec,shapeIndex:0},attr:toLive?m.la:m.ra,duration:1.4},(i%6)*.05); });
       tl.add(function(){ restack(toLive?liveOrder:recOrder); },.55);
@@ -70,9 +76,9 @@
     radios.live.addEventListener('change',function(){ if(radios.live.checked) go('live'); });
     var intro=gsap.timeline({paused:true,defaults:{ease:'power1.inOut'}});
     intro.fromTo(strokes,{drawSVG:'0%'},{drawSVG:'100%',duration:1.4,stagger:{each:.004}},0)
-         .to(recLines,{yPercent:0,stagger:.08,duration:.7,ease:'power3.out'},.3)
-         .to(upRec?upRec:{},{clipPath:OPEN,duration:.6,ease:'power3.out'},.9)
-         .add(function(){ setTimeout(function(){ if(state==='rec') go('live'); },1800); });
+         .to(liveLines,{yPercent:0,stagger:.08,duration:.7,ease:'power3.out'},.3)
+         .to(upLive?upLive:{},{clipPath:OPEN,duration:.6,ease:'power3.out'},.9)
+         .add(function(){ setTimeout(function(){ if(state==='live') go('rec'); },1800); });
     ScrollTrigger.create({trigger:root,start:'top 70%',once:true,onEnter:function(){ intro.play(); }});
   };
   var waited=0; function whenReady(){ if(document.getElementById('athar-paths')) return start(); if(waited++<40) setTimeout(whenReady,250); }
