@@ -11,7 +11,8 @@
   var E='power3.out', EB='back.out(1.7)';
   var isDesk=window.matchMedia('(min-width:760px)').matches, fine=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
   var q=function(s,c){return (c||document).querySelector(s)}, qa=function(s,c){return [].slice.call((c||document).querySelectorAll(s))};
-  function flag(el){ if(el.getAttribute('data-ah')) return false; el.setAttribute('data-ah','1'); return true; }
+  var fresh=0;
+  function flag(el){ if(el.getAttribute('data-ah')) return false; el.setAttribute('data-ah','1'); fresh++; return true; }
   /* split a heading into words (visible at rest; motion animates FROM) */
   function words(h){ var t=h.textContent.trim().split(/\s+/); h.textContent=''; t.forEach(function(w,i){ var s=document.createElement('span'); s.className='ah-w'; s.style.display='inline-block'; s.textContent=w; h.appendChild(s); if(i<t.length-1) h.appendChild(document.createTextNode(' ')); }); }
 
@@ -44,15 +45,19 @@
       b.addEventListener('mousemove',function(e){ var r=b.getBoundingClientRect(); gsap.to(b,{x:(e.clientX-r.left-r.width/2)*.18,y:(e.clientY-r.top-r.height/2)*.28,duration:.4,ease:E}); });
       b.addEventListener('mouseleave',function(){ gsap.to(b,{x:0,y:0,duration:.6,ease:'elastic.out(1,.5)'}); }); });
   }
-  function init(){ intro(); prime(); reveals(); }
+  function init(){ fresh=0; intro(); prime(); reveals(); return fresh; }
   function boot(){
     gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.config({ignoreMobileResize:true});
+    /* the theme sets scroll-behavior:smooth on the page; ScrollTrigger measures positions by jumping to 0 and back,
+       which must be instant or every position comes out shifted by the current scroll */
+    try{ document.documentElement.style.scrollBehavior='auto'; document.body.style.scrollBehavior='auto'; }catch(e){}
     init();
-    /* Salla renders HTML blocks from the browser one after another: watch for late sections for 20s */
-    var t=null, mo=new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ init(); ScrollTrigger.refresh(); },150); });
+    /* Salla renders HTML blocks from the browser one after another: watch for late sections for 20s,
+       and recalculate only when a new section was actually set up */
+    var t=null, mo=new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ if(init()) ScrollTrigger.refresh(); },150); });
     mo.observe(document.body,{childList:true,subtree:true});
-    setTimeout(function(){ mo.disconnect(); ScrollTrigger.refresh(); },20000);
-    window.addEventListener('load',function(){ ScrollTrigger.refresh(); });
+    setTimeout(function(){ mo.disconnect(); },20000);
   }
   function start(){ need('gsap','gsap.min.js').then(function(){ return need('ScrollTrigger','ScrollTrigger.min.js'); }).then(boot).catch(function(e){ if(window.console) console.warn('athar home: motion skipped',e); }); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
